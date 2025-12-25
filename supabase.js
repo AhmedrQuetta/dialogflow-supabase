@@ -8,12 +8,12 @@ const { WebhookClient, Payload } = require('dialogflow-fulfillment');
 const express = require("express");
 const { createClient } = require('@supabase/supabase-js');
 const MODEL_NAME = "gemini-2.5-flash-lite";
-const API_KEY = "AIzaSyBG4bU8yJIyCdNqYDpR_vyPokhkGUEX74Q";
+const API_KEY = process.env.GEMINI_API_KEY;
 
 
 // Replace with your actual Supabase project URL and anon key
-const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_URL = "";
+const SUPABASE_ANON_KEY = "";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -76,26 +76,25 @@ app.post('/dialogflow', async (req, res) => {
             console.log(result)
         }
     }
-
     function hi(agent) {
         console.log(`intent  =>  hi`);
-        agent.add('Hi, I am your virtual assistant, Tell me how can I help you')
+        agent.add('Hi, I am your virtual assistant, Tell me how can I help you from server')
     }
     async function order(agent) {
         console.log(`intent  =>  OrderPizza`);
-        const { food, email, city, country } = agent.parameters;
+        const { destination, email, date , phone, number, departure } = agent.parameters;
         try {
             const { error } = await supabase
                 .from('tickets')
                 .insert([
-                    { food, email, city, country, created_at: new Date().toISOString() }
+                    { destination, email, date , phone, number, departure,  created_at: new Date().toISOString() }
                 ]);
             if (error) {
                 console.error('Supabase Error:', error);
                 agent.add('Sorry, there was an error booking your ticket. Please try again later.');
             } else {
                 agent.add(
-                    `Your order for ${food} has been placed. It will be delivered to you at ${city}, ${country}. A confirmation email has been sent to ${email}. Thank you for choosing our service!`
+                    `Your order for ${destination} has been placed. It will be delivered to you at ${number}, ${departure}. A confirmation email has been sent to ${email}. Thank you for choosing our service!`
                 );
             }
         } catch (err) {
@@ -107,7 +106,7 @@ app.post('/dialogflow', async (req, res) => {
     let intentMap = new Map();
     intentMap.set('Default Fallback Intent', fallback);
     intentMap.set('Default Welcome Intent', hi);
-    intentMap.set('order', order);
+    intentMap.set('reservation', order);
     agent.handleRequest(intentMap);
 });
 
